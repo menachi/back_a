@@ -1,25 +1,22 @@
 const express = require("express");
 const app = express();
+const mongoose = require("mongoose");
 
-app.get("/", (req, res) => {
-  res.send("Hello, World! 22");
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-app.get("/movie", (req, res) => {
-  res.send("get star wars");
+const db = mongoose.connection;
+db.on("error", (error) => {
+  console.error(error);
+});
+db.once("open", () => {
+  console.log("Connected to MongoDB");
 });
 
-app.post("/movie", (req, res) => {
-  res.send("post star wars");
-});
-
-app.delete("/movie", (req, res) => {
-  res.send("delete star wars");
-});
-
-app.put("/movie", (req, res) => {
-  res.send("put star wars");
-});
+const movieRoutes = require("./routes/movieRoutes");
+app.use("/movie", movieRoutes);
 
 const PORT = process.env.PORT;
 
