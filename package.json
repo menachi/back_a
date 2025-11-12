@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --env-file=.env_dev index.js",
     "dev": "nodemon --env-file=.env_dev index.js"
   },
   "author": "Menachi",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^2.2.0",
     "express": "^5.1.0",
     "mongoose": "^8.19.3"
   },
