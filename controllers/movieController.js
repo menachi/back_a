@@ -21,7 +21,12 @@ const getMovieById = async (req, res) => {
   console.log(id);
   try {
     const movie = await Movie.findById(id);
-    res.json(movie);
+    console.log("getMovieById =" + movie);
+    if (!movie) {
+      return res.status(404).json({ error: "Movie not found" });
+    } else {
+      res.json(movie);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
