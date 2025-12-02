@@ -2,14 +2,14 @@ import express from "express";
 const router = express.Router();
 import movieController from "../controllers/movieController";
 
-router.get("/", movieController.getMovie);
+router.get("/", movieController.get.bind(movieController));
 
-router.get("/:id", movieController.getMovieById);
+router.get("/:id", movieController.getById.bind(movieController));
 
-router.post("/", movieController.postMovie);
+router.post("/", movieController.post.bind(movieController));
 
-router.delete("/:id", movieController.deleteMovie);
+router.delete("/:id", movieController.del.bind(movieController));
 
-router.put("/:id", movieController.putMovie);
+router.put("/:id", movieController.put.bind(movieController));
 
 export default router;

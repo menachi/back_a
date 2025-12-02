@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.dev" });
 import movieRoutes from "./routes/movieRoutes";
+import commentRoutes from "./routes/commentRoutes";
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
@@ -11,6 +12,8 @@ const intApp = () => {
     app.use(express.json());
 
     app.use("/movie", movieRoutes);
+    app.use("/comment", commentRoutes);
+
     const dbUri = process.env.MONGODB_URI;
     if (!dbUri) {
       console.error("MONGODB_URI is not defined in the environment variables.");
