@@ -15,15 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const index_1 = __importDefault(require("../index"));
 const movieModel_1 = __importDefault(require("../model/movieModel"));
-var testData = [
-    { title: "Movie A", releaseYear: 2000 },
-    { title: "Movie B", releaseYear: 2001 },
-    { title: "Movie C", releaseYear: 2002 },
-];
+const testUtils_1 = require("./testUtils");
 let app;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, index_1.default)();
     yield movieModel_1.default.deleteMany({});
+    yield (0, testUtils_1.registerTestUser)(app);
 }));
 afterAll((done) => {
     done();
@@ -37,8 +34,10 @@ describe("Movies API", () => {
     }));
     test("test post movie", () => __awaiter(void 0, void 0, void 0, function* () {
         //add all movies from testData
-        for (const movie of testData) {
-            const response = yield (0, supertest_1.default)(app).post("/movie").send(movie);
+        for (const movie of testUtils_1.moviesData) {
+            const response = yield (0, supertest_1.default)(app).post("/movie")
+                .set("Authorization", "Bearer " + testUtils_1.userData.token)
+                .send(movie);
             expect(response.statusCode).toBe(201);
             expect(response.body).toMatchObject(movie);
         }
@@ -46,34 +45,36 @@ describe("Movies API", () => {
     test("test get movies after post", () => __awaiter(void 0, void 0, void 0, function* () {
         const response = yield (0, supertest_1.default)(app).get("/movie");
         expect(response.statusCode).toBe(200);
-        expect(response.body.length).toBe(testData.length);
+        expect(response.body.length).toBe(testUtils_1.moviesData.length);
     }));
     test("test get movies with filter", () => __awaiter(void 0, void 0, void 0, function* () {
-        const movie = testData[0];
+        const movie = testUtils_1.moviesData[0];
         const response = yield (0, supertest_1.default)(app).get("/movie?releaseYear=" + movie.releaseYear);
         expect(response.statusCode).toBe(200);
         expect(response.body.length).toBe(1);
         expect(response.body[0].releaseYear).toBe(movie.releaseYear);
-        testData[0]._id = response.body[0]._id;
+        testUtils_1.moviesData[0]._id = response.body[0]._id;
     }));
     test("test get movie by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).get("/movie/" + testData[0]._id);
+        const response = yield (0, supertest_1.default)(app).get("/movie/" + testUtils_1.moviesData[0]._id);
         expect(response.statusCode).toBe(200);
-        expect(response.body._id).toBe(testData[0]._id);
+        expect(response.body._id).toBe(testUtils_1.moviesData[0]._id);
     }));
     test("test put movie by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        testData[0].releaseYear = 2010;
+        testUtils_1.moviesData[0].releaseYear = 2010;
         const response = yield (0, supertest_1.default)(app)
-            .put("/movie/" + testData[0]._id)
-            .send(testData[0]);
+            .put("/movie/" + testUtils_1.moviesData[0]._id)
+            .set("Authorization", "Bearer " + testUtils_1.userData.token)
+            .send(testUtils_1.moviesData[0]);
         expect(response.statusCode).toBe(200);
-        expect(response.body.title).toBe(testData[0].title);
-        expect(response.body.releaseYear).toBe(testData[0].releaseYear);
+        expect(response.body.title).toBe(testUtils_1.moviesData[0].title);
+        expect(response.body.releaseYear).toBe(testUtils_1.moviesData[0].releaseYear);
     }));
     test("test delete movie by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).delete("/movie/" + testData[0]._id);
+        const response = yield (0, supertest_1.default)(app).delete("/movie/" + testUtils_1.moviesData[0]._id)
+            .set("Authorization", "Bearer " + testUtils_1.userData.token);
         expect(response.statusCode).toBe(200);
-        const getResponse = yield (0, supertest_1.default)(app).get("/movie/" + testData[0]._id);
+        const getResponse = yield (0, supertest_1.default)(app).get("/movie/" + testUtils_1.moviesData[0]._id);
         expect(getResponse.statusCode).toBe(404);
     }));
 });
