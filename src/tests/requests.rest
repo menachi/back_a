@@ -14,6 +14,7 @@ GET http://localhost:3000/movie/69133c28251f35bcbc4206a6
 ###
 
 POST http://localhost:3000/movie
+Authorization: Bearer your_jwt_token_here
 Content-Type: application/json
 
 {

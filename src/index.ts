@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.dev" });
 import movieRoutes from "./routes/movieRoutes";
 import commentRoutes from "./routes/commentRoutes";
+import authRoutes from "./routes/authRoutes";
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
@@ -13,6 +14,7 @@ const intApp = () => {
 
     app.use("/movie", movieRoutes);
     app.use("/comment", commentRoutes);
+    app.use("/auth", authRoutes);
 
     const dbUri = process.env.MONGODB_URI;
     if (!dbUri) {

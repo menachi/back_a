@@ -8,19 +8,24 @@
     "dev": "nodemon ./src/server.ts",
     "lint": "eslint . --ext .ts",
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
-    "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/comments.test.ts"
+    "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/comments.test.ts",
+    "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/auth.test.ts"
   },
   "author": "Menachi",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.19.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^4.17.1",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
