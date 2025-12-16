@@ -3,26 +3,37 @@ import User from "../model/userModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const sendError = (res: Response, message: string) => {
-    res.status(400).json({ error: message });
+const sendError = (res: Response, message: string, code?: number) => {
+    const errCode = code || 400;
+    res.status(errCode).json({ error: message });
 }
 
-const generateToken = (userId: string): string => {
+type Tokens = {
+    token: string;
+    refreshToken: string;
+}
+const generateToken = (userId: string): Tokens => {
     const secret: string = process.env.JWT_SECRET || "secretkey";
     const exp: number = parseInt(process.env.JWT_EXPIRES_IN || "3600"); // 1 hour
-    return jwt.sign(
+    const refreshexp: number = parseInt(process.env.JWT_REFRESH_EXPIRES_IN || "86400"); // 24 hours
+    const token = jwt.sign(
         { userId: userId },
         secret,
         { expiresIn: exp }
     );
-
+    const refreshToken = jwt.sign(
+        { userId: userId },
+        secret,
+        { expiresIn: refreshexp } // 24 hours
+    );
+    return { token, refreshToken };
 }
 const register = async (req: Request, res: Response) => {
     // Registration logic here
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return sendError(res, "Email and password are required");
+        return sendError(res, "Email and password are required", 401);
     }
     try {
         const salt = await bcrypt.genSalt(10);
@@ -32,12 +43,15 @@ const register = async (req: Request, res: Response) => {
         //generate JWT token
         const secret: string = process.env.JWT_SECRET || "secretkey";
         const exp: number = parseInt(process.env.JWT_EXPIRES_IN || "3600"); // 1 hour
-        const token = generateToken(user._id.toString());
+        const tokens = generateToken(user._id.toString());
+
+        user.refreshToken.push(tokens.refreshToken);
+        await user.save();
 
         //send token back to user
-        res.status(201).json({ "token": token });
+        res.status(201).json(tokens);
     } catch (error) {
-        return sendError(res, "Registration failed");
+        return sendError(res, "Registration failed", 401);
     }
 };
 
@@ -61,15 +75,57 @@ const login = async (req: Request, res: Response) => {
         }
 
         //generate JWT token
-        const token = generateToken(user._id.toString());
+        const tokens = generateToken(user._id.toString());
+
+        user.refreshToken.push(tokens.refreshToken);
+        await user.save();
+
         //send token back to user
-        res.status(200).json({ "token": token });
+        res.status(200).json(tokens);
     } catch (error) {
         return sendError(res, "Login failed");
     }
 };
 
+const refreshToken = async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return sendError(res, "Refresh token is required", 401);
+    }
+
+    try {
+        const secret: string = process.env.JWT_SECRET || "secretkey";
+        const decoded: any = jwt.verify(refreshToken, secret);
+
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return sendError(res, "Invalid refresh token", 401);
+        }
+
+        if (!user.refreshToken.includes(refreshToken)) {
+            //remove all refresh tokens from user
+            user.refreshToken = [];
+            await user.save();
+            return sendError(res, "Invalid refresh token", 401);
+        }
+
+        //generate new tokens
+        const tokens = generateToken(user._id.toString());
+        user.refreshToken.push(tokens.refreshToken);
+        //remove old refresh token
+        user.refreshToken = user.refreshToken.filter(rt => rt !== refreshToken);
+        await user.save();
+
+        res.status(200).json(tokens);
+    } catch (error) {
+        return sendError(res, "Invalid refresh token", 401);
+    }
+};
+
+
 export default {
     register,
-    login
+    login,
+    refreshToken
 };

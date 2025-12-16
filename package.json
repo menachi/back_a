@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .ts",
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
     "testcomment": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/comments.test.ts",
+    "testmovie": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/movies.test.ts",
     "testauth": "tsc && jest --runInBand --detectOpenHandles --forceExit src/tests/auth.test.ts"
   },
   "author": "Menachi",

@@ -15,19 +15,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const userModel_1 = __importDefault(require("../model/userModel"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const sendError = (res, message) => {
-    res.status(400).json({ error: message });
+const sendError = (res, message, code) => {
+    const errCode = code || 400;
+    res.status(errCode).json({ error: message });
 };
 const generateToken = (userId) => {
     const secret = process.env.JWT_SECRET || "secretkey";
     const exp = parseInt(process.env.JWT_EXPIRES_IN || "3600"); // 1 hour
-    return jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: exp });
+    const refreshexp = parseInt(process.env.JWT_REFRESH_EXPIRES_IN || "86400"); // 24 hours
+    const token = jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: exp });
+    const refreshToken = jsonwebtoken_1.default.sign({ userId: userId }, secret, { expiresIn: refreshexp } // 24 hours
+    );
+    return { token, refreshToken };
 };
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // Registration logic here
     const { email, password } = req.body;
     if (!email || !password) {
-        return sendError(res, "Email and password are required");
+        return sendError(res, "Email and password are required", 401);
     }
     try {
         const salt = yield bcrypt_1.default.genSalt(10);
@@ -36,12 +41,14 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //generate JWT token
         const secret = process.env.JWT_SECRET || "secretkey";
         const exp = parseInt(process.env.JWT_EXPIRES_IN || "3600"); // 1 hour
-        const token = generateToken(user._id.toString());
+        const tokens = generateToken(user._id.toString());
+        user.refreshToken.push(tokens.refreshToken);
+        yield user.save();
         //send token back to user
-        res.status(201).json({ "token": token });
+        res.status(201).json(tokens);
     }
     catch (error) {
-        return sendError(res, "Registration failed");
+        return sendError(res, "Registration failed", 401);
     }
 });
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -60,16 +67,49 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return sendError(res, "Invalid email or password");
         }
         //generate JWT token
-        const token = generateToken(user._id.toString());
+        const tokens = generateToken(user._id.toString());
+        user.refreshToken.push(tokens.refreshToken);
+        yield user.save();
         //send token back to user
-        res.status(200).json({ "token": token });
+        res.status(200).json(tokens);
     }
     catch (error) {
         return sendError(res, "Login failed");
     }
 });
+const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return sendError(res, "Refresh token is required", 401);
+    }
+    try {
+        const secret = process.env.JWT_SECRET || "secretkey";
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, secret);
+        const user = yield userModel_1.default.findById(decoded.userId);
+        if (!user) {
+            return sendError(res, "Invalid refresh token", 401);
+        }
+        if (!user.refreshToken.includes(refreshToken)) {
+            //remove all refresh tokens from user
+            user.refreshToken = [];
+            yield user.save();
+            return sendError(res, "Invalid refresh token", 401);
+        }
+        //generate new tokens
+        const tokens = generateToken(user._id.toString());
+        user.refreshToken.push(tokens.refreshToken);
+        //remove old refresh token
+        user.refreshToken = user.refreshToken.filter(rt => rt !== refreshToken);
+        yield user.save();
+        res.status(200).json(tokens);
+    }
+    catch (error) {
+        return sendError(res, "Invalid refresh token", 401);
+    }
+});
 exports.default = {
     register,
-    login
+    login,
+    refreshToken
 };
 //# sourceMappingURL=authController.js.map

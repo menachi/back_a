@@ -13,6 +13,11 @@ const movieSchema = new mongoose_1.default.Schema({
         type: Number,
         required: true,
     },
+    createdBy: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "user",
+        required: true,
+    },
 });
 exports.default = mongoose_1.default.model("movie", movieSchema);
 //# sourceMappingURL=movieModel.js.map

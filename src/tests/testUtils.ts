@@ -7,6 +7,7 @@ type UserData = {
     password: string;
     _id?: string;
     token?: string;
+    refreshToken?: string;
 };
 export const userData: UserData = {
     email: "test@testMovies.com",

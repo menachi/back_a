@@ -14,6 +14,9 @@ const userSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
+    refreshToken: {
+        type: [String],
+    },
 });
 exports.default = mongoose_1.default.model("user", userSchema);
 //# sourceMappingURL=userModel.js.map
