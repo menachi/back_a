@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerTestUser = exports.singleMovieData = exports.moviesData = exports.userData = void 0;
+exports.registerTestUser = exports.commentsData = exports.singleMovieData = exports.moviesData = exports.userData = void 0;
 const supertest_1 = __importDefault(require("supertest"));
 const userModel_1 = __importDefault(require("../model/userModel"));
 exports.userData = {
@@ -25,6 +25,13 @@ exports.moviesData = [
     { title: "Movie C", releaseYear: 2002 },
 ];
 exports.singleMovieData = { title: "Movie A", releaseYear: 2000 };
+exports.commentsData = [
+    { message: "Great movie!", movieId: "movie1" },
+    { message: "Loved it!", movieId: "movie1" },
+    { message: "Not bad.", movieId: "movie2" },
+    { message: "Worst movie ever.", movieId: "movie2" },
+    { message: "Could be better.", movieId: "movie3" },
+];
 const registerTestUser = (app) => __awaiter(void 0, void 0, void 0, function* () {
     yield userModel_1.default.deleteMany({ "email": exports.userData.email });
     const res = yield (0, supertest_1.default)(app).post("/auth/register").send({

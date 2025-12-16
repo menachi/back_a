@@ -15,17 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
 const index_1 = __importDefault(require("../index"));
 const commentModel_1 = __importDefault(require("../model/commentModel"));
-var testData = [
-    { message: "Great movie!", movieId: "movie1", writerId: "user1" },
-    { message: "Loved it!", movieId: "movie1", writerId: "user4" },
-    { message: "Not bad.", movieId: "movie2", writerId: "user2" },
-    { message: "Worst movie ever.", movieId: "movie2", writerId: "user1" },
-    { message: "Could be better.", movieId: "movie3", writerId: "user3" },
-];
+const testUtils_1 = require("./testUtils");
 let app;
 beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
     app = yield (0, index_1.default)();
     yield commentModel_1.default.deleteMany({});
+    yield (0, testUtils_1.registerTestUser)(app);
 }));
 afterAll((done) => {
     done();
@@ -38,9 +33,11 @@ describe("Comments API", () => {
         expect(response.body).toEqual([]);
     }));
     test("test post comment", () => __awaiter(void 0, void 0, void 0, function* () {
-        //add all comments from testData
-        for (const comment of testData) {
-            const response = yield (0, supertest_1.default)(app).post("/comment").send(comment);
+        //add all comments from commentsData
+        for (const comment of testUtils_1.commentsData) {
+            const response = yield (0, supertest_1.default)(app).post("/comment")
+                .set("Authorization", "Bearer " + testUtils_1.userData.token)
+                .send(comment);
             expect(response.statusCode).toBe(201);
             expect(response.body).toMatchObject(comment);
         }
@@ -48,36 +45,38 @@ describe("Comments API", () => {
     test("test get comments after post", () => __awaiter(void 0, void 0, void 0, function* () {
         const response = yield (0, supertest_1.default)(app).get("/comment");
         expect(response.statusCode).toBe(200);
-        expect(response.body.length).toBe(testData.length);
+        expect(response.body.length).toBe(testUtils_1.commentsData.length);
     }));
     test("test get comments with filter", () => __awaiter(void 0, void 0, void 0, function* () {
-        const comment = testData[0];
+        const comment = testUtils_1.commentsData[0];
         const response = yield (0, supertest_1.default)(app).get("/comment?movieId=" + comment.movieId);
         expect(response.statusCode).toBe(200);
         expect(response.body.length).toBe(2);
-        const comment2 = testData[4];
+        const comment2 = testUtils_1.commentsData[4];
         const response2 = yield (0, supertest_1.default)(app).get("/comment?movieId=" + comment2.movieId);
         expect(response2.statusCode).toBe(200);
         expect(response2.body.length).toBe(1);
-        testData[4]._id = response2.body[0]._id;
+        testUtils_1.commentsData[4]._id = response2.body[0]._id;
     }));
     test("test get comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).get("/comment/" + testData[4]._id);
+        const response = yield (0, supertest_1.default)(app).get("/comment/" + testUtils_1.commentsData[4]._id);
         expect(response.statusCode).toBe(200);
-        expect(response.body._id).toBe(testData[4]._id);
+        expect(response.body._id).toBe(testUtils_1.commentsData[4]._id);
     }));
     test("test put comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        testData[4].message = "this is the new text";
+        testUtils_1.commentsData[4].message = "this is the new text";
         const response = yield (0, supertest_1.default)(app)
-            .put("/comment/" + testData[4]._id)
-            .send(testData[4]);
+            .put("/comment/" + testUtils_1.commentsData[4]._id)
+            .set("Authorization", "Bearer " + testUtils_1.userData.token)
+            .send(testUtils_1.commentsData[4]);
         expect(response.statusCode).toBe(200);
-        expect(response.body.message).toBe(testData[4].message);
+        expect(response.body.message).toBe(testUtils_1.commentsData[4].message);
     }));
     test("test delete comment by id", () => __awaiter(void 0, void 0, void 0, function* () {
-        const response = yield (0, supertest_1.default)(app).delete("/comment/" + testData[4]._id);
+        const response = yield (0, supertest_1.default)(app).delete("/comment/" + testUtils_1.commentsData[4]._id)
+            .set("Authorization", "Bearer " + testUtils_1.userData.token);
         expect(response.statusCode).toBe(200);
-        const getResponse = yield (0, supertest_1.default)(app).get("/comment/" + testData[4]._id);
+        const getResponse = yield (0, supertest_1.default)(app).get("/comment/" + testUtils_1.commentsData[4]._id);
         expect(getResponse.statusCode).toBe(404);
     }));
 });
