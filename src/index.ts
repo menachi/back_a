@@ -6,11 +6,25 @@ dotenv.config({ path: ".env.dev" });
 import movieRoutes from "./routes/movieRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import authRoutes from "./routes/authRoutes";
+import { specs, swaggerUi } from "./swagger";
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
+
+    // Swagger Documentation
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: ".swagger-ui .topbar { display: none }",
+      customSiteTitle: "Movie & Comments API Documentation"
+    }));
+
+    // Swagger JSON endpoint
+    app.get("/api-docs.json", (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(specs);
+    });
 
     app.use("/movie", movieRoutes);
     app.use("/comment", commentRoutes);
