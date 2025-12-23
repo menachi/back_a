@@ -81,7 +81,7 @@ describe("Movies API", () => {
 
   // Search API Tests
   describe("Movie Search API", () => {
-    test("test search with valid query returns 501 not implemented", async () => {
+    test("test search with valid query returns 200 with proper structure", async () => {
       const searchQuery = {
         query: "action movies from the 90s",
         limit: 10,
@@ -92,9 +92,13 @@ describe("Movies API", () => {
         .post("/movie/search")
         .send(searchQuery);
 
-      expect(response.statusCode).toBe(501);
-      expect(response.body).toHaveProperty("error");
-      expect(response.body.error).toBe("Search functionality not implemented yet");
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toHaveProperty("results");
+      expect(response.body).toHaveProperty("metadata");
+      expect(response.body.metadata.query).toBe(searchQuery.query);
+      expect(response.body.metadata.limit).toBe(searchQuery.limit);
+      expect(response.body.metadata.offset).toBe(searchQuery.offset);
+      expect(Array.isArray(response.body.results)).toBe(true);
     });
 
     test("test search with minimal query", async () => {
@@ -106,17 +110,32 @@ describe("Movies API", () => {
         .post("/movie/search")
         .send(searchQuery);
 
-      expect(response.statusCode).toBe(501);
-      expect(response.body).toHaveProperty("error");
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toHaveProperty("results");
+      expect(response.body).toHaveProperty("metadata");
+      expect(response.body.metadata.query).toBe("Matrix");
+      expect(response.body.metadata.limit).toBe(10); // default
+      expect(response.body.metadata.offset).toBe(0); // default
     });
 
-    test("test search with empty query body returns error", async () => {
+    test("test search with empty query body returns 400 validation error", async () => {
       const response = await request(app)
         .post("/movie/search")
         .send({});
 
-      // Should return 501 for now, but will need validation later
-      expect([400, 501]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toHaveProperty("error");
+      expect(response.body.error).toBe("Query is required and must be a string");
+    });
+
+    test("test search with empty string query returns 400 validation error", async () => {
+      const response = await request(app)
+        .post("/movie/search")
+        .send({ query: "   " }); // whitespace only
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toHaveProperty("error");
+      expect(response.body.error).toBe("Query cannot be empty");
     });
 
 

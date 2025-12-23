@@ -79,7 +79,7 @@ describe("Movies API", () => {
     }));
     // Search API Tests
     describe("Movie Search API", () => {
-        test("test search with valid query returns 501 not implemented", () => __awaiter(void 0, void 0, void 0, function* () {
+        test("test search with valid query returns 200 with proper structure", () => __awaiter(void 0, void 0, void 0, function* () {
             const searchQuery = {
                 query: "action movies from the 90s",
                 limit: 10,
@@ -88,9 +88,13 @@ describe("Movies API", () => {
             const response = yield (0, supertest_1.default)(app)
                 .post("/movie/search")
                 .send(searchQuery);
-            expect(response.statusCode).toBe(501);
-            expect(response.body).toHaveProperty("error");
-            expect(response.body.error).toBe("Search functionality not implemented yet");
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toHaveProperty("results");
+            expect(response.body).toHaveProperty("metadata");
+            expect(response.body.metadata.query).toBe(searchQuery.query);
+            expect(response.body.metadata.limit).toBe(searchQuery.limit);
+            expect(response.body.metadata.offset).toBe(searchQuery.offset);
+            expect(Array.isArray(response.body.results)).toBe(true);
         }));
         test("test search with minimal query", () => __awaiter(void 0, void 0, void 0, function* () {
             const searchQuery = {
@@ -99,17 +103,55 @@ describe("Movies API", () => {
             const response = yield (0, supertest_1.default)(app)
                 .post("/movie/search")
                 .send(searchQuery);
-            expect(response.statusCode).toBe(501);
-            expect(response.body).toHaveProperty("error");
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toHaveProperty("results");
+            expect(response.body).toHaveProperty("metadata");
+            expect(response.body.metadata.query).toBe("Matrix");
+            expect(response.body.metadata.limit).toBe(10); // default
+            expect(response.body.metadata.offset).toBe(0); // default
         }));
-        test("test search with empty query body returns error", () => __awaiter(void 0, void 0, void 0, function* () {
+        test("test search with empty query body returns 400 validation error", () => __awaiter(void 0, void 0, void 0, function* () {
             const response = yield (0, supertest_1.default)(app)
                 .post("/movie/search")
                 .send({});
-            // Should return 501 for now, but will need validation later
-            expect([400, 501]).toContain(response.statusCode);
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toHaveProperty("error");
+            expect(response.body.error).toBe("Query is required and must be a string");
         }));
-        test("test search with large query string", () => __awaiter(void 0, void 0, void 0, function* () {
+        test("test search with empty string query returns 400 validation error", () => __awaiter(void 0, void 0, void 0, function* () {
+            const response = yield (0, supertest_1.default)(app)
+                .post("/movie/search")
+                .send({ query: "   " }); // whitespace only
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toHaveProperty("error");
+            expect(response.body.error).toBe("Query cannot be empty");
+        }));
+        test("test search with pagination parameters", () => __awaiter(void 0, void 0, void 0, function* () {
+            const searchQuery = {
+                query: "comedy movies",
+                limit: 5,
+                offset: 10
+            };
+            const response = yield (0, supertest_1.default)(app)
+                .post("/movie/search")
+                .send(searchQuery);
+            expect(response.statusCode).toBe(200);
+            expect(response.body.metadata.limit).toBe(5);
+            expect(response.body.metadata.offset).toBe(10);
+        }));
+        test("test search with invalid limit parameter returns 400", () => __awaiter(void 0, void 0, void 0, function* () {
+            const searchQuery = {
+                query: "horror movies",
+                limit: -5,
+                offset: 0
+            };
+            const response = yield (0, supertest_1.default)(app)
+                .post("/movie/search")
+                .send(searchQuery);
+            expect(response.statusCode).toBe(400);
+            expect(response.body.error).toBe("Limit must be between 1 and 100");
+        }));
+        test("test search with large query string returns 400", () => __awaiter(void 0, void 0, void 0, function* () {
             const longQuery = "a".repeat(1000); // 1000 character query
             const searchQuery = {
                 query: longQuery,
@@ -118,8 +160,8 @@ describe("Movies API", () => {
             const response = yield (0, supertest_1.default)(app)
                 .post("/movie/search")
                 .send(searchQuery);
-            // Currently returns 501, but should handle long queries appropriately
-            expect([400, 501]).toContain(response.statusCode);
+            expect(response.statusCode).toBe(400);
+            expect(response.body.error).toBe("Query too long (max 500 characters)");
         }));
         test("test search endpoint accepts POST method only", () => __awaiter(void 0, void 0, void 0, function* () {
             const response = yield (0, supertest_1.default)(app)
