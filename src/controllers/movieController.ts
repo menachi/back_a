@@ -54,6 +54,15 @@ class MovieController extends baseController {
             res.status(401).json({ error: "Unauthorized" });
         }
     }
+
+    async search(req: Request, res: Response): Promise<void> {
+        try {
+            // TODO: Implement LLM-powered search
+            res.status(501).json({ error: "Search functionality not implemented yet" });
+        } catch (error) {
+            res.status(500).json({ error: "Internal server error" });
+        }
+    }
 }
 
 export default new MovieController();

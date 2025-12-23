@@ -81,6 +81,17 @@ class MovieController extends baseController_1.default {
             }
         });
     }
+    search(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // TODO: Implement LLM-powered search
+                res.status(501).json({ error: "Search functionality not implemented yet" });
+            }
+            catch (error) {
+                res.status(500).json({ error: "Internal server error" });
+            }
+        });
+    }
 }
 exports.default = new MovieController();
 //# sourceMappingURL=movieController.js.map

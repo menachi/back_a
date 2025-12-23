@@ -209,4 +209,78 @@ router.delete("/:id", authMiddleware, movieController.del.bind(movieController))
  */
 router.put("/:id", authMiddleware, movieController.put.bind(movieController));
 
+/**
+ * @swagger
+ * /movie/search:
+ *   post:
+ *     summary: Search movies using natural language
+ *     description: Search for movies using natural language queries powered by AI. No authentication required.
+ *     tags: [Movies]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [query]
+ *             properties:
+ *               query:
+ *                 type: string
+ *                 description: Natural language search query
+ *                 example: "action movies from the 90s"
+ *               limit:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 100
+ *                 default: 10
+ *                 description: Maximum number of results to return
+ *               offset:
+ *                 type: integer
+ *                 minimum: 0
+ *                 default: 0
+ *                 description: Number of results to skip for pagination
+ *     responses:
+ *       200:
+ *         description: Search completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Movie'
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     query:
+ *                       type: string
+ *                       description: Original search query
+ *                     totalResults:
+ *                       type: integer
+ *                       description: Total number of matching results
+ *                     searchType:
+ *                       type: string
+ *                       enum: [title, year, combined, semantic]
+ *                       description: Type of search performed
+ *                     confidence:
+ *                       type: number
+ *                       minimum: 0
+ *                       maximum: 1
+ *                       description: Confidence score of search interpretation
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       501:
+ *         description: Search functionality not implemented yet
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.post("/search", movieController.search.bind(movieController));
+
 export default router;
