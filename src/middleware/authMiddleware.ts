@@ -1,10 +1,21 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+interface JwtPayload {
+    userId: string;
+    iat?: number;
+    exp?: number;
+}
 
-export type AuthRequest = Request & { user?: { _id: string } };
+export interface AuthRequest extends Request {
+    user: { _id: string };
+}
 
-const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export interface OptionalAuthRequest extends Request {
+    user?: { _id: string };
+}
+
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     // Authentication logic here
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -15,12 +26,20 @@ const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => 
     const secret: string = process.env.JWT_SECRET || "secretkey";
 
     try {
-        const decoded = jwt.verify(token, secret) as { userId: string };
-        req.user = { _id: decoded.userId };
+        const decoded = jwt.verify(token, secret) as JwtPayload;
+        (req as AuthRequest).user = { _id: decoded.userId };
         next();
     } catch (error) {
         return res.status(401).json({ error: "Unauthorized" });
     }
+};
+
+// Helper function to safely extract user ID
+export const getUserId = (req: AuthRequest): string => {
+    if (!req.user || !req.user._id) {
+        throw new Error("User not authenticated");
+    }
+    return req.user._id;
 };
 
 

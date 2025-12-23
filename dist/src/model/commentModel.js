@@ -10,11 +10,13 @@ const commentSchema = new mongoose_1.default.Schema({
         required: true,
     },
     movieId: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "movie",
         required: true,
     },
     writerId: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "user",
         required: true,
     },
 });

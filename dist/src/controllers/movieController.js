@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const movieModel_1 = __importDefault(require("../model/movieModel"));
 const baseController_1 = __importDefault(require("./baseController"));
+const authMiddleware_1 = require("../middleware/authMiddleware");
 const movieController = new baseController_1.default(movieModel_1.default);
 class MovieController extends baseController_1.default {
     constructor() {
@@ -24,10 +25,14 @@ class MovieController extends baseController_1.default {
             post: { get: () => super.post }
         });
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            req.body.createdBy = userId;
-            return _super.post.call(this, req, res);
+            try {
+                const userId = (0, authMiddleware_1.getUserId)(req);
+                req.body.createdBy = userId;
+                return _super.post.call(this, req, res);
+            }
+            catch (error) {
+                res.status(401).json({ error: "Unauthorized" });
+            }
         });
     }
     put(req, res) {
@@ -35,14 +40,22 @@ class MovieController extends baseController_1.default {
             put: { get: () => super.put }
         });
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            const movie = yield movieModel_1.default.findById(req.params.id);
-            if ((movie === null || movie === void 0 ? void 0 : movie.createdBy.toString()) !== userId) {
-                res.status(403).json({ error: "Forbidden" });
-                return;
+            try {
+                const userId = (0, authMiddleware_1.getUserId)(req);
+                const movie = yield movieModel_1.default.findById(req.params.id);
+                if (!movie) {
+                    res.status(404).json({ error: "Movie not found" });
+                    return;
+                }
+                if (movie.createdBy.toString() !== userId) {
+                    res.status(403).json({ error: "Forbidden" });
+                    return;
+                }
+                return _super.put.call(this, req, res);
             }
-            return _super.put.call(this, req, res);
+            catch (error) {
+                res.status(401).json({ error: "Unauthorized" });
+            }
         });
     }
     del(req, res) {
@@ -50,14 +63,22 @@ class MovieController extends baseController_1.default {
             del: { get: () => super.del }
         });
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            const movie = yield movieModel_1.default.findById(req.params.id);
-            if ((movie === null || movie === void 0 ? void 0 : movie.createdBy.toString()) !== userId) {
-                res.status(403).json({ error: "Forbidden" });
-                return;
+            try {
+                const userId = (0, authMiddleware_1.getUserId)(req);
+                const movie = yield movieModel_1.default.findById(req.params.id);
+                if (!movie) {
+                    res.status(404).json({ error: "Movie not found" });
+                    return;
+                }
+                if (movie.createdBy.toString() !== userId) {
+                    res.status(403).json({ error: "Forbidden" });
+                    return;
+                }
+                return _super.del.call(this, req, res);
             }
-            return _super.del.call(this, req, res);
+            catch (error) {
+                res.status(401).json({ error: "Unauthorized" });
+            }
         });
     }
 }
