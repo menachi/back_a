@@ -1,3 +1,6 @@
+import queryParserService from './queryParserService';
+import { ParsedMovieQuery } from '../types/search';
+
 export interface SearchParams {
     query: string;
 }
@@ -15,14 +18,15 @@ export interface ParsedQuery {
         min?: number;
         max?: number;
     };
-    searchType: 'title' | 'year' | 'combined';
+    searchType: 'title' | 'year' | 'combined' | 'semantic';
     confidence: number;
+    originalQuery: string;
 }
 
 class MovieSearchService {
     async search(params: SearchParams): Promise<SearchResult> {
         try {
-            // TODO: Implement LLM query parsing
+            // Parse the query using LLM-powered query parser
             const parsedQuery = await this.parseQuery(params.query);
 
             // TODO: Implement database search based on parsed query
@@ -41,13 +45,31 @@ class MovieSearchService {
     }
 
     private async parseQuery(query: string): Promise<ParsedQuery> {
-        // TODO: Implement LLM-powered query parsing
-        // For now, return a basic parsed query
-        return {
-            titleKeywords: [query],
-            searchType: 'title',
-            confidence: 0.5
-        };
+        try {
+            // Use the LLM-powered query parser service
+            const parsedMovieQuery = await queryParserService.parseMovieQuery(query, {
+                fallbackToKeywords: true,
+                maxKeywords: 10
+            });
+
+            // Convert ParsedMovieQuery to our ParsedQuery interface
+            return {
+                titleKeywords: parsedMovieQuery.titleKeywords,
+                yearRange: parsedMovieQuery.yearRange,
+                searchType: parsedMovieQuery.searchType,
+                confidence: parsedMovieQuery.confidence,
+                originalQuery: parsedMovieQuery.originalQuery
+            };
+        } catch (error) {
+            console.error('Query parsing failed, using fallback:', error);
+            // Fallback to basic parsing if query parser fails
+            return {
+                titleKeywords: [query.trim()],
+                searchType: 'title',
+                confidence: 0.2,
+                originalQuery: query
+            };
+        }
     }
 
     private async searchDatabase(parsedQuery: ParsedQuery): Promise<any[]> {

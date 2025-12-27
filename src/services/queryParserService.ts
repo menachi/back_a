@@ -78,7 +78,7 @@ Response: {"yearRange": {"min": 2010, "max": 2010}, "searchType": "year", "confi
                 num_predict: 500 // Limit response length
             });
 
-            if (!llmResponse.success || !llmResponse.response) {
+            if (!llmResponse.done || !llmResponse.response) {
                 throw new QueryParsingError(
                     'LLM service returned invalid response',
                     query
