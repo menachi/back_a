@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+export type MovieRecord = {
+  _id?: string;
+  title: string;
+  releaseYear: number;
+  createdBy: string;
+  description?: string;
+}
+
 const movieSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -14,6 +22,9 @@ const movieSchema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
+  description: {
+    type: String,
+  }
 });
 
 export default mongoose.model("movie", movieSchema);

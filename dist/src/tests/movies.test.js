@@ -77,5 +77,10 @@ describe("Movies API", () => {
         const getResponse = yield (0, supertest_1.default)(app).get("/movie/" + testUtils_1.moviesData[0]._id);
         expect(getResponse.statusCode).toBe(404);
     }));
+    test("test AI search", () => __awaiter(void 0, void 0, void 0, function* () {
+        const response = yield (0, supertest_1.default)(app).post("/movie/search/ai")
+            .send({ query: "I am looking for a movie starring kiano reevs, it was about the future with red and blue pills" });
+        expect(response.statusCode).toBe(200);
+    }));
 });
 //# sourceMappingURL=movies.test.js.map

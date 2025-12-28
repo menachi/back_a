@@ -20,9 +20,9 @@ exports.userData = {
     password: "testpasswordMovies",
 };
 exports.moviesData = [
-    { title: "Movie A", releaseYear: 2000 },
-    { title: "Movie B", releaseYear: 2001 },
-    { title: "Movie C", releaseYear: 2002 },
+    { title: "xman", releaseYear: 2000, description: "Description A" },
+    { title: "Movie B", releaseYear: 2001, description: "Description A" },
+    { title: "Movie C", releaseYear: 2002, description: "Description A" },
 ];
 exports.singleMovieData = { title: "Movie A", releaseYear: 2000 };
 exports.commentsData = [

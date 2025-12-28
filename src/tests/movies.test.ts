@@ -78,4 +78,10 @@ describe("Movies API", () => {
     const getResponse = await request(app).get("/movie/" + moviesData[0]._id);
     expect(getResponse.statusCode).toBe(404);
   });
+
+  test("test AI search", async () => {
+    const response = await request(app).post("/movie/search/ai")
+      .send({ query: "I am looking for a movie starring kiano reevs, it was about the future with red and blue pills" });
+    expect(response.statusCode).toBe(200);
+  });
 });

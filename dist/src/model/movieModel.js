@@ -18,6 +18,9 @@ const movieSchema = new mongoose_1.default.Schema({
         ref: "user",
         required: true,
     },
+    description: {
+        type: String,
+    }
 });
 exports.default = mongoose_1.default.model("movie", movieSchema);
 //# sourceMappingURL=movieModel.js.map

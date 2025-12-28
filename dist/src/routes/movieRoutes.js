@@ -208,5 +208,6 @@ router.delete("/:id", authMiddleware_1.default, movieController_1.default.del.bi
  *         $ref: '#/components/responses/ServerError'
  */
 router.put("/:id", authMiddleware_1.default, movieController_1.default.put.bind(movieController_1.default));
+router.post("/search/ai", movieController_1.default.searchAI.bind(movieController_1.default));
 exports.default = router;
 //# sourceMappingURL=movieRoutes.js.map

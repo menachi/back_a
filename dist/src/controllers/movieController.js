@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const movieModel_1 = __importDefault(require("../model/movieModel"));
 const baseController_1 = __importDefault(require("./baseController"));
+const movieSearch_1 = __importDefault(require("../services/movieSearch"));
 const movieController = new baseController_1.default(movieModel_1.default);
 class MovieController extends baseController_1.default {
     constructor() {
@@ -58,6 +59,17 @@ class MovieController extends baseController_1.default {
                 return;
             }
             return _super.del.call(this, req, res);
+        });
+    }
+    searchAI(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { query } = req.body;
+            // Call the AI search service
+            const aiResult = yield (0, movieSearch_1.default)(query);
+            if (aiResult) {
+                return res.status(200).json({ result: aiResult });
+            }
+            return res.status(400).json("");
         });
     }
 }

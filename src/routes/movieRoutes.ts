@@ -209,4 +209,6 @@ router.delete("/:id", authMiddleware, movieController.del.bind(movieController))
  */
 router.put("/:id", authMiddleware, movieController.put.bind(movieController));
 
+router.post("/search/ai", movieController.searchAI.bind(movieController));
+
 export default router;
