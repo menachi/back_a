@@ -12,10 +12,19 @@ const movieRoutes_1 = __importDefault(require("./routes/movieRoutes"));
 const commentRoutes_1 = __importDefault(require("./routes/commentRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const swagger_1 = require("./swagger");
+const multerRoutes_1 = __importDefault(require("./routes/multerRoutes"));
 const intApp = () => {
     const promise = new Promise((resolve, reject) => {
         app.use(express_1.default.urlencoded({ extended: false }));
         app.use(express_1.default.json());
+        app.use(function (req, res, next) {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "*");
+            res.header("Access-Control-Allow-Methods", "*");
+            next();
+        });
+        app.use("/public", express_1.default.static("./public"));
+        app.use("/upload", multerRoutes_1.default);
         // Swagger Documentation
         app.use("/api-docs", swagger_1.swaggerUi.serve, swagger_1.swaggerUi.setup(swagger_1.specs, {
             explorer: true,

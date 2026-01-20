@@ -7,11 +7,21 @@ import movieRoutes from "./routes/movieRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import authRoutes from "./routes/authRoutes";
 import { specs, swaggerUi } from "./swagger";
+import multerRoute from "./routes/multerRoutes";
 
 const intApp = () => {
   const promise = new Promise<Express>((resolve, reject) => {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
+    app.use(function (req, res, next) {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Headers", "*");
+      res.header("Access-Control-Allow-Methods", "*");
+      next();
+    });
+
+    app.use("/public", express.static("./public"));
+    app.use("/upload", multerRoute);
 
     // Swagger Documentation
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
@@ -29,6 +39,7 @@ const intApp = () => {
     app.use("/movie", movieRoutes);
     app.use("/comment", commentRoutes);
     app.use("/auth", authRoutes);
+
 
     const dbUri = process.env.MONGODB_URI;
     if (!dbUri) {
